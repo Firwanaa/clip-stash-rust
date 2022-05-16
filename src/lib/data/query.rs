@@ -2,8 +2,8 @@
 
 use super::model;
 use crate::data::{DataError, DatabasePool};
-use crate::ShortCode;
 use crate::web::api::ApiKey;
+use crate::ShortCode;
 use sqlx::Row;
 
 /// [`Result`] alias for database query functions.
@@ -112,7 +112,7 @@ pub enum RevocationStatus {
     /// The [`ApiKey`] was successfully revoked.
     Revoked,
     /// The [`ApiKey`] was not found, so no revocation occuured.
-    NotFound
+    NotFound,
 }
 
 /// Revokes an [`ApiKey`].
@@ -124,7 +124,7 @@ pub async fn revoke_api_key(api_key: ApiKey, pool: &DatabasePool) -> Result<Revo
             .await
             .map(|result| match result.rows_affected() {
                 0 => RevocationStatus::NotFound,
-                _ => RevocationStatus::Revoked
+                _ => RevocationStatus::Revoked,
             })?,
     )
 }
@@ -150,7 +150,7 @@ pub async fn delete_expired(pool: &DatabasePool) -> Result<u64> {
         sqlx::query!(r#"DELETE FROM clips WHERE strftime('%s', 'now') > expires"#)
             .execute(pool)
             .await?
-            .rows_affected()
+            .rows_affected(),
     )
 }
 
@@ -162,7 +162,7 @@ pub mod test {
 
     fn model_get_clip(shortcode: &str) -> model::GetClip {
         model::GetClip {
-            shortcode: shortcode.into()
+            shortcode: shortcode.into(),
         }
     }
 
@@ -175,7 +175,7 @@ pub mod test {
             shortcode: shortcode.into(),
             posted: Utc::now().timestamp(),
             expires: None,
-            password: None
+            password: None,
         }
     }
 
@@ -185,13 +185,11 @@ pub mod test {
         let db = new_db(rt.handle());
         let pool = db.get_pool();
 
-        let clip = rt.block_on(async move {
-            super::new_clip(model_new_clip("1"), &pool.clone()).await
-        });
+        let clip =
+            rt.block_on(async move { super::new_clip(model_new_clip("1"), &pool.clone()).await });
         assert!(clip.is_ok());
         let clip = clip.unwrap();
         assert!(clip.shortcode == "1");
         assert!(clip.content == format!("content for clip '1'"));
     }
-
 }

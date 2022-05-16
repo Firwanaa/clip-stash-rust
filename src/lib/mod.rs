@@ -1,20 +1,22 @@
+//! Main application library
+
 pub mod data;
 pub mod domain;
 pub mod service;
 pub mod web;
 
-pub use data::DataError;
 pub use domain::clip::field::ShortCode;
 pub use domain::clip::{Clip, ClipError};
 pub use domain::time::Time;
+pub use data::DataError;
 pub use service::ServiceError;
 
 use data::AppDatabase;
-use domain::maintenance::Maintenance;
 use rocket::fs::FileServer;
 use rocket::{Build, Rocket};
+use web::{renderer::Renderer};
 use web::hitcounter::HitCounter;
-use web::renderer::Renderer;
+use domain::maintenance::Maintenance;
 
 /// Creates a new Rocket build that is configured for running ClipStash.
 pub fn rocket(config: RocketConfig) -> Rocket<Build> {
@@ -37,6 +39,7 @@ pub struct RocketConfig {
     pub hit_counter: HitCounter,
     pub maintenance: Maintenance,
 }
+
 
 #[cfg(test)]
 pub mod test {

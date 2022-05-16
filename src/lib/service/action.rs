@@ -2,8 +2,8 @@
 
 use crate::data::{query, DatabasePool, Transaction};
 use crate::service::ask;
-use crate::web::api::ApiKey;
 use crate::{Clip, ServiceError, ShortCode};
+use crate::web::api::ApiKey;
 use std::convert::TryInto;
 
 /// Begins a new [`Transaction`].
@@ -20,35 +20,38 @@ pub async fn end_transaction(transaction: Transaction<'_>) -> Result<(), Service
 pub async fn increase_hit_count(
     shortcode: &ShortCode,
     hits: u32,
-    pool: &DatabasePool,
+    pool: &DatabasePool
 ) -> Result<(), ServiceError> {
     Ok(query::increase_hit_count(shortcode, hits, pool).await?)
 }
 
 /// Creates a new [`Clip`].
-pub async fn new_clip(req: ask::NewClip, pool: &DatabasePool) -> Result<Clip, ServiceError> {
-    Ok(query::new_clip(req, pool).await?.try_into()?)
-}
+pub async fn new_clip(req: ask::NewClip, pool: &DatabasePool)
+    -> Result<Clip, ServiceError> {
+        Ok(query::new_clip(req, pool).await?.try_into()?)
+    }
 
 /// Updates an existing [`Clip`].
-pub async fn update_clip(req: ask::UpdateClip, pool: &DatabasePool) -> Result<Clip, ServiceError> {
-    Ok(query::update_clip(req, pool).await?.try_into()?)
-}
+pub async fn update_clip(req: ask::UpdateClip, pool: &DatabasePool)
+    -> Result<Clip, ServiceError> {
+        Ok(query::update_clip(req, pool).await?.try_into()?)
+    }
 
 /// Gets a [`Clip`].
-pub async fn get_clip(req: ask::GetClip, pool: &DatabasePool) -> Result<Clip, ServiceError> {
-    let user_password = req.password.clone();
-    let clip: Clip = query::get_clip(req, pool).await?.try_into()?;
-    if clip.password.has_password() {
-        if clip.password == user_password {
-            Ok(clip)
+pub async fn get_clip(req: ask::GetClip, pool: &DatabasePool)
+    -> Result<Clip, ServiceError> {
+        let user_password = req.password.clone();
+        let clip: Clip = query::get_clip(req, pool).await?.try_into()?;
+        if clip.password.has_password() {
+            if clip.password == user_password {
+                Ok(clip)
+            } else {
+                Err(ServiceError::PermissionError("Invalid password".to_owned()))
+            }
         } else {
-            Err(ServiceError::PermissionError("Invalid password".to_owned()))
+            Ok(clip)
         }
-    } else {
-        Ok(clip)
     }
-}
 
 /// Creates a new [`ApiKey`].
 pub async fn generate_api_key(pool: &DatabasePool) -> Result<ApiKey, ServiceError> {
@@ -57,15 +60,16 @@ pub async fn generate_api_key(pool: &DatabasePool) -> Result<ApiKey, ServiceErro
 }
 
 /// Revokes an existing [`ApiKey`].
-pub async fn revoke_api_key(
-    api_key: ApiKey,
-    pool: &DatabasePool,
-) -> Result<query::RevocationStatus, ServiceError> {
+pub async fn revoke_api_key(api_key: ApiKey, pool: &DatabasePool)
+    -> Result<query::RevocationStatus, ServiceError>
+{
     Ok(query::revoke_api_key(api_key, pool).await?)
 }
 
 /// Determines if an [`ApiKey`] is valid.
-pub async fn api_key_is_valid(api_key: ApiKey, pool: &DatabasePool) -> Result<bool, ServiceError> {
+pub async fn api_key_is_valid(api_key: ApiKey, pool: &DatabasePool)
+    -> Result<bool, ServiceError>
+{
     Ok(query::api_key_is_valid(api_key, pool).await?)
 }
 

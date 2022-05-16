@@ -1,11 +1,11 @@
 //! All web-related things: API, templates, routing, workers.
 
-pub mod api;
 pub mod ctx;
-pub mod form;
-pub mod hitcounter;
-pub mod http;
 pub mod renderer;
+pub mod form;
+pub mod http;
+pub mod hitcounter;
+pub mod api;
 
 pub use hitcounter::HitCounter;
 
@@ -54,10 +54,7 @@ pub mod test {
         let rt = async_runtime();
         let renderer = Renderer::new("templates/".into());
         let database = crate::data::test::new_db(rt.handle());
-        let maintenance = crate::domain::maintenance::Maintenance::spawn(
-            database.get_pool().clone(),
-            rt.handle().clone(),
-        );
+        let maintenance = crate::domain::maintenance::Maintenance::spawn(database.get_pool().clone(), rt.handle().clone());
         let hit_counter = HitCounter::new(database.get_pool().clone(), rt.handle().clone());
 
         RocketConfig {
@@ -72,4 +69,5 @@ pub mod test {
         let config = config();
         Client::tracked(crate::rocket(config)).expect("failed to build rocket instance")
     }
+
 }
